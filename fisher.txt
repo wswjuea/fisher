@@ -1,0 +1,36 @@
+from flask import Flask, make_response
+
+# 创建Flask核心对象,__name__为其标识
+app = Flask(__name__)
+app.config.from_object('config')# 模块的路径,作为配置文件
+# 如果用app.config.from_object()导入配置文件,app.config字典的key必须都是大写,带有小写自动忽略
+
+
+# 装饰器定义路由,访问视图函数;@app.route()装饰器即app.add_url_rule()
+@app.route('/hello/')# 路径最后带/,重定向,兼容了路径结尾带/和不带/的访问
+# 视图函数,启动web服务器,即MVC中的controller控制器
+def hello():
+    headers = {
+        'content-type':'text/plain',
+        'location':'http://www.bing.com'
+    }
+    # response = make_response('<html></html>',301)
+    # response.headers = headers
+    # return response
+    return '<html></html>',301,headers
+# 视图函数会返回:
+# status code 200,404,301等;状态码只是标识,不会影响返回内容
+# content-type放置于http的headers属性中,告诉接收方如何解析return内容,默认值=text/html,将返回内容看做html格式
+# 视图函数的返回会被封装成一个Response对象
+# 视图函数的接口为小程序或app提供数据,即API,返回内容为json格式的字符串,headers.content-type为application/json
+# 基于类的视图,即插视图
+
+# 注册路由方法2:使用基于类的视图时,必须使用app.add_url_rule()
+# app.add_url_rule('/hello/',view_func=hello)# 只用函数名,不用加括号
+
+if __name__ == '__main__':
+    # 确保只在作为入口文件时运行;在生产环境中使用nginx+uwsgi部署项目,在服务器上通过uwsgi加载模块来启动项目,uwsgi作为web服务器和app.run()相冲突(app.run()即启动web服务器),所以必须加判断,不启动flask自带的web服务器
+    app.run(host='0.0.0.0',debug=app.config['DEBUG'],port=81)#启动web服务器,激活调试模式,任何修改都会重启web服务器
+# host='0.0.0.0'接受外网的访问;port设置端口号,默认为5000
+# debug=True部署在服务器上时,要关闭调试模式,结合配置文件config.py判断在开发环境还是生产环境
+# config是python字典的子类;app.config['DEBUG']有默认值为False
